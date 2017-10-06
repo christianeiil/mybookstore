@@ -1,4 +1,6 @@
-﻿using MyBookstore.App_Code;
+﻿using CrystalDecisions.CrystalReports.Engine;
+using CrystalDecisions.Shared;
+using MyBookstore.App_Code;
 using MyBookstore.Models;
 using System;
 using System.Collections.Generic;
@@ -38,7 +40,7 @@ namespace MyBookstore.Controllers
                                 author.Address = row["authorAddress"].ToString();
                                 author.City = row["authorCity"].ToString();
                                 author.State = row["authorState"].ToString();
-                                author.Zip= row["authorZip"].ToString();
+                                author.Zip = row["authorZip"].ToString();
                                 list.Add(author);
 
                             }
@@ -46,7 +48,7 @@ namespace MyBookstore.Controllers
                     }
                 }
             }
-                return View(list);
+            return View(list);
         }
 
         // GET: Authors/Details/5
@@ -76,7 +78,7 @@ namespace MyBookstore.Controllers
             //    return View();
             //}
             using (SqlConnection con = new SqlConnection(Helper.GetCon()))
-                {
+            {
                 con.Open();
                 string query = @"INSERT INTO authors VALUES (@authorLN, @authorFN, @authorPhone, @authorAddress, @authorCity, @authorState, @authorZip)";
                 using (SqlCommand cmd = new SqlCommand(query, con))
@@ -95,7 +97,7 @@ namespace MyBookstore.Controllers
 
                     cmd.Parameters.AddWithValue("@authorZip", author.Zip);
 
-                   cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQuery();
                     return RedirectToAction("Index");
                 }
             }
@@ -144,7 +146,7 @@ namespace MyBookstore.Controllers
                 }
             }
 
-                return View();
+            return View();
         }
 
         // POST: Authors/Edit/5
@@ -163,7 +165,7 @@ namespace MyBookstore.Controllers
             //}
 
             using (SqlConnection con = new SqlConnection(Helper.GetCon()))
-                {
+            {
                 con.Open();
                 string query = @"UPDATE authors SET authorLN=@authorLN, authorFn=@authorFN, authorPhone=@authorPhone, 
                 authorAddress=@authorAddress, authorCity=@authorCity, authorState=@authorState,
@@ -195,10 +197,10 @@ namespace MyBookstore.Controllers
         // GET: Authors/Delete/5
         public ActionResult Delete(int? id)
         {
-            
+
             {
-                if (id ==null)
-                return RedirectToAction("Index");
+                if (id == null)
+                    return RedirectToAction("Index");
                 using (SqlConnection con = new SqlConnection(Helper.GetCon()))
                 {
                     con.Open();
@@ -213,7 +215,7 @@ namespace MyBookstore.Controllers
                 }
             }
         }
-           
+
 
         // POST: Authors/Delete/5
         [HttpPost]
@@ -229,6 +231,30 @@ namespace MyBookstore.Controllers
             {
                 return View();
             }
+        
+    
+        }
+        public ActionResult GenerateReport()
+        {
+            ReportDocument rd = new ReportDocument();
+            rd.Load(Server.MapPath("/Reports/rptAuthors.rpt"));
+            rd.SetDatabaseLogon("sa", "benilde", "TAFT-CL339", "mybookstore");
+            rd.ExportToHttpResponse(ExportFormatType.PortableDocFormat, System.Web.HttpContext.Current.Response, true, "Authors Report");
+            return View();
+        }
+
+        public ActionResult GenerateIndividualReport(int? id)
+        {
+            if (id == null)
+                return RedirectToAction("Index");
+
+            ReportDocument rd = new ReportDocument();
+            rd.Load(Server.MapPath("/Reports/rptAuthorIndividual.rpt"));
+            rd.SetParameterValue("authorID", id);
+            rd.SetParameterValue("Username", "Christian Neil Manalang");
+            rd.SetDatabaseLogon("sa", "benilde", "TAFT-CL339", "mybookstore");
+            rd.ExportToHttpResponse(ExportFormatType.PortableDocFormat, System.Web.HttpContext.Current.Response, true, "Authors #" + id.ToString() + "Report");
+            return View();
         }
     }
 }
